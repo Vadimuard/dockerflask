@@ -4,10 +4,9 @@ from datetime import datetime as dt
 from ast import literal_eval
 
 from models.actor import Actor
-from models.movie import Movie
 
 from settings.constants import ACTOR_FIELDS  # to make response pretty
-from parse_request import get_request_data
+from parse_request import get_request_data, verify_input_data
 
 
 def get_all_actors():
@@ -54,11 +53,14 @@ def add_actor():
     """
     data = get_request_data()
     ### YOUR CODE HERE ###
+    is_valid = verify_input_data(data, ACTOR_FIELDS)
 
-    # use this for 200 response code
-    new_record = Actor.create(**data)
-    new_actor = {k: v for k, v in new_record.__dict__.items() if k in ACTOR_FIELDS}
-    return make_response(jsonify(new_actor), 200)
+    if is_valid:
+        new_record = Actor.create(**data)
+        new_actor = {k: v for k, v in new_record.__dict__.items() if k in ACTOR_FIELDS}
+        return make_response(jsonify(new_actor), 200)
+    else:
+        return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
     ### END CODE HERE ###
 
 
@@ -68,11 +70,27 @@ def update_actor():
     """
     data = get_request_data()
     ### YOUR CODE HERE ###
+    if 'id' in data.keys():
+        if not verify_input_data(data, ACTOR_FIELDS):
+            return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
+        try:
+            row_id = int(data['id'])
+        except:
+            err = 'Id must be integer'
+            return make_response(jsonify(error=err), 400)
+        data.pop('id')
+        upd_record = Actor.update(row_id, **data)
+        try:
+            upd_actor = {k: v for k, v in upd_record.__dict__.items() if k in ACTOR_FIELDS}
+        except:
+            err = 'Record with such id does not exist'
+            return make_response(jsonify(error=err), 400)
 
-    # use this for 200 response code
-    upd_record = Actor.update(**data)
-    upd_actor = {k: v for k, v in upd_record.__dict__.items() if k in ACTOR_FIELDS}
-    return make_response(jsonify(upd_actor), 200)
+        return make_response(jsonify(upd_actor), 200)
+
+    else:
+        err = 'No id specified'
+        return make_response(jsonify(error=err), 400)
     ### END CODE HERE ###
 
 
@@ -82,10 +100,17 @@ def delete_actor():
     """
     data = get_request_data()
     ### YOUR CODE HERE ###
-    Actor.delete(data.id)
-    # use this for 200 response code
-    msg = 'Record successfully deleted'
-    return make_response(jsonify(message=msg), 200)
+    if verify_input_data(data, ACTOR_FIELDS):
+        try:
+            row_id = int(data['id'])
+        except:
+            err = 'Id must be integer'
+            return make_response(jsonify(error=err), 400)
+        Actor.delete(row_id)
+        # use this for 200 response code
+        msg = 'Record successfully deleted'
+        return make_response(jsonify(message=msg), 200)
+    return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
     ### END CODE HERE ###
 
 
@@ -95,12 +120,19 @@ def actor_add_relation():
     """
     data = get_request_data()
     ### YOUR CODE HERE ###
-
-    # use this for 200 response code
-    actor = Actor.add_relation(data.id, rel_obj=data.rel_obj) # add relation here
-    rel_actor = {k: v for k, v in actor.__dict__.items() if k in ACTOR_FIELDS}
-    rel_actor['filmography'] = str(actor.filmography)
-    return make_response(jsonify(rel_actor), 200)
+    if 'id' in data.keys() and 'relation_id' in data.keys():
+        # use this for 200 response code
+        try:
+            row_id = int(data['id'])
+            relation_id = int(data['relation_id'])
+        except:
+            err = 'Id must be integer'
+            return make_response(jsonify(error=err), 400)
+        actor = Actor.add_relation(row_id, rel_obj=relation_id) # add relation here
+        rel_actor = {k: v for k, v in actor.__dict__.items() if k in ACTOR_FIELDS}
+        rel_actor['filmography'] = str(actor.filmography)
+        return make_response(jsonify(rel_actor), 200)
+    return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
     ### END CODE HERE ###
 
 
@@ -111,9 +143,17 @@ def actor_clear_relations():
     data = get_request_data()
     ### YOUR CODE HERE ###
 
-    # use this for 200 response code
-    actor =  # clear relations here
-    rel_actor = {k: v for k, v in actor.__dict__.items() if k in ACTOR_FIELDS}
-    rel_actor['filmography'] = str(actor.filmography)
-    return make_response(jsonify(rel_actor), 200)
+    if 'id' in data.keys():
+        # use this for 200 response code
+        try:
+            row_id = int(data['id'])
+        except:
+            err = 'Id must be integer'
+            return make_response(jsonify(error=err), 400)
+        # use this for 200 response code
+        actor = Actor.clear_relations(row_id) # clear relations here
+        rel_actor = {k: v for k, v in actor.__dict__.items() if k in ACTOR_FIELDS}
+        rel_actor['filmography'] = str(actor.filmography)
+        return make_response(jsonify(rel_actor), 200)
+    return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
     ### END CODE HERE ###
