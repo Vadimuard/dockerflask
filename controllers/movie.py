@@ -4,7 +4,7 @@ from ast import literal_eval
 
 from models.movie import Movie
 from settings.constants import MOVIE_FIELDS
-from parse_request import get_request_data, verify_input_data
+from .parse_request import get_request_data, verify_input_data
 
 
 def get_all_movies():
@@ -54,6 +54,10 @@ def add_movie():
     is_valid = verify_input_data(data, MOVIE_FIELDS)
 
     if is_valid:
+        try:
+            year = int(data['year'])
+        except:
+            return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
         new_record = Movie.create(**data)
         new_movie = {k: v for k, v in new_record.__dict__.items() if k in MOVIE_FIELDS}
         return make_response(jsonify(new_movie), 200)
@@ -76,7 +80,11 @@ def update_movie():
         except:
             err = 'Id must be integer'
             return make_response(jsonify(error=err), 400)
-        data.pop('id')
+        if 'year' in data.keys():
+            try:
+                year = data['year']
+            except:
+                make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
         upd_record = Movie.update(row_id, **data)
         try:
             upd_movie = {k: v for k, v in upd_record.__dict__.items() if k in MOVIE_FIELDS}

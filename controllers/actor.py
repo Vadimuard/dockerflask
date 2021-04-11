@@ -6,7 +6,7 @@ from ast import literal_eval
 from models.actor import Actor
 
 from settings.constants import ACTOR_FIELDS  # to make response pretty
-from parse_request import get_request_data, verify_input_data
+from .parse_request import get_request_data, verify_input_data
 
 
 def get_all_actors():
@@ -32,7 +32,6 @@ def get_actor_by_id():
         except:
             err = 'Id must be integer'
             return make_response(jsonify(error=err), 400)
-
         obj = Actor.query.filter_by(id=row_id).first()
         try:
             actor = {k: v for k, v in obj.__dict__.items() if k in ACTOR_FIELDS}
@@ -56,6 +55,11 @@ def add_actor():
     is_valid = verify_input_data(data, ACTOR_FIELDS)
 
     if is_valid:
+        if 'date_of_birth' in data.keys():
+            try:
+                date_of_birth = dt.strptime(data['date_of_birth'], '%d.%m.%Y')
+            except:
+                return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
         new_record = Actor.create(**data)
         new_actor = {k: v for k, v in new_record.__dict__.items() if k in ACTOR_FIELDS}
         return make_response(jsonify(new_actor), 200)
@@ -78,7 +82,13 @@ def update_actor():
         except:
             err = 'Id must be integer'
             return make_response(jsonify(error=err), 400)
-        data.pop('id')
+        if 'date_of_birth' in data.keys():
+            try:
+                date_of_birth = dt.strptime(data['date_of_birth'], '%d.%m.%y')
+            except:
+                return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
+        # data.pop('id')
+        # data = dict([(k, v) for k, v in data.items() if k != 'id'])
         upd_record = Actor.update(row_id, **data)
         try:
             upd_actor = {k: v for k, v in upd_record.__dict__.items() if k in ACTOR_FIELDS}
@@ -86,6 +96,7 @@ def update_actor():
             err = 'Record with such id does not exist'
             return make_response(jsonify(error=err), 400)
 
+        print(upd_record)
         return make_response(jsonify(upd_actor), 200)
 
     else:

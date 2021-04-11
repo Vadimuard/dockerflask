@@ -20,9 +20,9 @@ def actor():
     elif request.method == 'POST':
         return add_actor()
     elif request.method == 'PUT':
-        update_actor()
+        return update_actor()
     elif request.method == 'DELETE':
-        delete_actor()
+        return delete_actor()
 
 
 @app.route('/api/movies', methods=['GET'])
@@ -40,22 +40,22 @@ def movie():
     elif request.method == 'POST':
         return add_movie()
     elif request.method == 'PUT':
-        update_movie()
+        return update_movie()
     elif request.method == 'DELETE':
-        delete_movie()
+        return delete_movie()
 
 
 @app.route('/api/actor-relations', methods=['PUT', 'DELETE'])
 def actor_relations():
     if request.method == 'PUT':
-        actor_add_relation()
+        return actor_add_relation()
     elif request.method == 'DELETE':
-        actor_clear_relations()
+        return actor_clear_relations()
 
 
 @app.route('/api/movie-relations', methods=['PUT', 'DELETE'])
 def movie_relations():
     if request.method == 'PUT':
-        movie_add_relation()
+        return movie_add_relation()
     elif request.method == 'DELETE':
-        movie_clear_relations()
+        return movie_clear_relations()
