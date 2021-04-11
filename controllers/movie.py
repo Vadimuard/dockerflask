@@ -86,7 +86,7 @@ def update_movie():
             try:
                 year = int(data['year'])
             except:
-                make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
+                return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
         upd_record = Movie.update(row_id, **data)
         try:
             upd_movie = {k: v for k, v in upd_record.__dict__.items() if k in MOVIE_FIELDS}
