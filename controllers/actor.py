@@ -4,6 +4,7 @@ from datetime import datetime as dt
 from ast import literal_eval
 
 from models.actor import Actor
+from models.movie import Movie
 
 from settings.constants import ACTOR_FIELDS  # to make response pretty
 from .parse_request import get_request_data, verify_input_data
@@ -129,6 +130,7 @@ def actor_add_relation():
     """
     Add a movie to actor's filmography
     """
+
     data = get_request_data()
     ### YOUR CODE HERE ###
     if 'id' in data.keys() and 'relation_id' in data.keys():
@@ -139,7 +141,7 @@ def actor_add_relation():
         except:
             err = 'Id must be integer'
             return make_response(jsonify(error=err), 400)
-        actor = Actor.add_relation(row_id, rel_obj=relation_id) # add relation here
+        actor = Actor.add_relation(row_id, rel_obj=Movie.query.filter_by(id=relation_id).first())  # add relation here
         rel_actor = {k: v for k, v in actor.__dict__.items() if k in ACTOR_FIELDS}
         rel_actor['filmography'] = str(actor.filmography)
         return make_response(jsonify(rel_actor), 200)

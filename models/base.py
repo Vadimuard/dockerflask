@@ -45,7 +45,7 @@ class Model(object):
         row_id: record id
         return: int (1 if deleted else 0)
         """
-        db.session.execute("DELETE FROM association where actor_id = :id; DELETE FROM actors WHERE id = :id;", {'id': row_id})
+        db.session.execute("DELETE FROM association where " + cls.__tablename__.split("s")[0] + "_id = :id; DELETE FROM " + cls.__tablename__ + " WHERE id = :id;", {'id': row_id})
         db.session.commit()
         return row_id
 
@@ -89,7 +89,7 @@ class Model(object):
         cls: class
         row_id: record id
         """
-        obj = cls.query.filter_by(id=row_id)
+        obj = cls.query.filter_by(id=row_id).first()
         if cls.__name__ == 'Actor':
             obj.filmography = []
         elif cls.__name__ == 'Movie':

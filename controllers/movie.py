@@ -3,6 +3,7 @@ from flask import jsonify, make_response
 from ast import literal_eval
 
 from models.movie import Movie
+from models.actor import Actor
 from settings.constants import MOVIE_FIELDS
 from .parse_request import get_request_data, verify_input_data
 
@@ -23,6 +24,7 @@ def get_movie_by_id():
     """
     Get record by id
     """
+
     data = get_request_data()
     if 'id' in data.keys():
         try:
@@ -82,7 +84,7 @@ def update_movie():
             return make_response(jsonify(error=err), 400)
         if 'year' in data.keys():
             try:
-                year = data['year']
+                year = int(data['year'])
             except:
                 make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
         upd_record = Movie.update(row_id, **data)
@@ -124,6 +126,7 @@ def movie_add_relation():
     """
     Add actor to movie's cast
     """
+    # TODO Route '/api/movie_relations' method PUT failed processing correct request
     data = get_request_data()
     ### YOUR CODE HERE ###
     if 'id' in data.keys() and 'relation_id' in data.keys():
@@ -134,10 +137,11 @@ def movie_add_relation():
         except:
             err = 'Id must be integer'
             return make_response(jsonify(error=err), 400)
-        movie = Movie.add_relation(row_id, rel_obj=relation_id)  # add relation here
+        movie = Movie.add_relation(row_id, rel_obj=Actor.query.filter_by(id=relation_id).first())  # add relation here
         rel_movie = {k: v for k, v in movie.__dict__.items() if k in MOVIE_FIELDS}
         rel_movie['cast'] = str(movie.cast)
-        return make_response(jsonify(movie), 200)
+        # print('here')
+        return make_response(jsonify(rel_movie), 200)
     return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
     ### END CODE HERE ###
 
@@ -148,7 +152,7 @@ def movie_clear_relations():
     """
     data = get_request_data()
     ### YOUR CODE HERE ###
-
+    # TODO movie_clear_relations: failed
     if 'id' in data.keys():
         # use this for 200 response code
         try:
@@ -159,7 +163,7 @@ def movie_clear_relations():
         # use this for 200 response code
         movie = Movie.clear_relations(row_id)  # clear relations here
         rel_movie = {k: v for k, v in movie.__dict__.items() if k in MOVIE_FIELDS}
-        rel_movie['filmography'] = str(movie.cast)
+        rel_movie['cast'] = str(movie.cast)
         return make_response(jsonify(rel_movie), 200)
     return make_response(jsonify(error='Input data is not correct so process could not be ended'), 400)
     ### END CODE HERE ###
